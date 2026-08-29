@@ -1,0 +1,29 @@
+<a class="back-link" routerLink="/usv">&larr; Back to USV list</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  @if (usv(); as usv) {
+    <h1>{{ usv.usv_code }}</h1>
+    <dl class="detail-fields">
+      <dt>USV ID</dt>
+      <dd>{{ usv.usv_id }}</dd>
+      <dt>Site ID</dt>
+      <dd>{{ usv.site_id }}</dd>
+      <dt>USV code</dt>
+      <dd>{{ usv.usv_code }}</dd>
+      <dt>Hostname</dt>
+      <dd>{{ usv.hostname || '—' }}</dd>
+      <dt>Installation ID</dt>
+      <dd>{{ usv.installation_id || '—' }}</dd>
+      <dt>Version</dt>
+      <dd>{{ usv.version || '—' }}</dd>
+      <dt>Status</dt>
+      <dd><app-status-badge [status]="usv.status"></app-status-badge></dd>
+      <dt>Last heartbeat</dt>
+      <dd>{{ usv.last_heartbeat ? (usv.last_heartbeat | date: 'medium') : 'Never' }}</dd>
+    </dl>
+  }
+}

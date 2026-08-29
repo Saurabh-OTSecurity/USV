@@ -1,0 +1,32 @@
+<h1>USV</h1>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Hostname</th>
+          <th>Version</th>
+          <th>Status</th>
+          <th>Last heartbeat</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usv of usvs(); track usv.usv_id) {
+          <tr>
+            <td><a [routerLink]="['/usv', usv.usv_id]">{{ usv.usv_code }}</a></td>
+            <td>{{ usv.hostname || '—' }}</td>
+            <td>{{ usv.version || '—' }}</td>
+            <td><app-status-badge [status]="usv.status"></app-status-badge></td>
+            <td>{{ usv.last_heartbeat ? (usv.last_heartbeat | date: 'medium') : 'Never' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

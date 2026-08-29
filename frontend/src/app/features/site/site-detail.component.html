@@ -1,0 +1,27 @@
+<a class="back-link" routerLink="/site">&larr; Back to Site list</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  @if (site(); as site) {
+    <h1>{{ site.name }}</h1>
+    <dl class="detail-fields">
+      <dt>Site ID</dt>
+      <dd>{{ site.site_id }}</dd>
+      <dt>Site code</dt>
+      <dd>{{ site.site_code }}</dd>
+      <dt>Name</dt>
+      <dd>{{ site.name }}</dd>
+      <dt>Description</dt>
+      <dd>{{ site.description || '—' }}</dd>
+      <dt>Timezone</dt>
+      <dd>{{ site.timezone || '—' }}</dd>
+      <dt>Criticality</dt>
+      <dd>{{ site.criticality || '—' }}</dd>
+      <dt>Status</dt>
+      <dd><app-status-badge [status]="site.status"></app-status-badge></dd>
+    </dl>
+  }
+}

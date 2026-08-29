@@ -1,0 +1,40 @@
+<a class="back-link" routerLink="/integrations">&larr; Back to Integrations list</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  @if (integration(); as integration) {
+    <h1>{{ integration.name || 'Integration' }}</h1>
+    <p class="notice">This is a seeded configuration record only — not a live connection in Phase 0.</p>
+    <dl class="detail-fields">
+      <dt>Integration ID</dt>
+      <dd>{{ integration.integration_id }}</dd>
+      <dt>Name</dt>
+      <dd>{{ integration.name || '—' }}</dd>
+      <dt>Type</dt>
+      <dd>{{ integration.integration_type || '—' }}</dd>
+      <dt>Provider</dt>
+      <dd>{{ integration.provider || '—' }}</dd>
+      <dt>Version</dt>
+      <dd>{{ integration.version || '—' }}</dd>
+      <dt>Engine</dt>
+      <dd>
+        <span
+          class="engine-badge"
+          [class.engine-badge--fixed]="integration.is_fixed_engine"
+          [class.engine-badge--pluggable]="!integration.is_fixed_engine"
+        >
+          {{ integration.is_fixed_engine ? 'Fixed engine' : 'Pluggable' }}
+        </span>
+      </dd>
+      <dt>Status</dt>
+      <dd><app-status-badge [status]="integration.status"></app-status-badge></dd>
+      <dt>Last successful sync</dt>
+      <dd>{{ integration.last_success_at ? (integration.last_success_at | date: 'medium') : 'Never' }}</dd>
+      <dt>Last error</dt>
+      <dd>{{ integration.last_error_at ? (integration.last_error_at | date: 'medium') : 'None' }}</dd>
+    </dl>
+  }
+}

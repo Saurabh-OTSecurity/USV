@@ -1,0 +1,30 @@
+<h1>Site</h1>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Criticality</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (site of sites(); track site.site_id) {
+          <tr>
+            <td><a [routerLink]="['/site', site.site_id]">{{ site.site_code }}</a></td>
+            <td>{{ site.name }}</td>
+            <td>{{ site.criticality || '—' }}</td>
+            <td><app-status-badge [status]="site.status"></app-status-badge></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

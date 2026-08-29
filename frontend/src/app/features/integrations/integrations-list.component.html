@@ -1,0 +1,44 @@
+<h1>Integrations</h1>
+
+<p class="notice">
+  These are seeded configuration records only — none of them are live connections in Phase 0.
+</p>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Engine</th>
+          <th>Status</th>
+          <th>Last successful sync</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (integration of integrations(); track integration.integration_id) {
+          <tr>
+            <td><a [routerLink]="['/integrations', integration.integration_id]">{{ integration.name || '—' }}</a></td>
+            <td>{{ integration.integration_type || '—' }}</td>
+            <td>
+              <span
+                class="engine-badge"
+                [class.engine-badge--fixed]="integration.is_fixed_engine"
+                [class.engine-badge--pluggable]="!integration.is_fixed_engine"
+              >
+                {{ integration.is_fixed_engine ? 'Fixed engine' : 'Pluggable' }}
+              </span>
+            </td>
+            <td><app-status-badge [status]="integration.status"></app-status-badge></td>
+            <td>{{ integration.last_success_at ? (integration.last_success_at | date: 'medium') : 'Never' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,78 @@
+<h1>Dashboard</h1>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <section class="section grid">
+    @for (site of sites(); track site.site_id) {
+      <div class="card">
+        <h2>Site</h2>
+        <dl>
+          <dt>Code</dt>
+          <dd>{{ site.site_code }}</dd>
+          <dt>Name</dt>
+          <dd>{{ site.name }}</dd>
+          <dt>Status</dt>
+          <dd><app-status-badge [status]="site.status"></app-status-badge></dd>
+        </dl>
+      </div>
+    }
+
+    @for (usv of usvs(); track usv.usv_id) {
+      <div class="card">
+        <h2>USV</h2>
+        <dl>
+          <dt>Code</dt>
+          <dd>{{ usv.usv_code }}</dd>
+          <dt>Status</dt>
+          <dd><app-status-badge [status]="usv.status"></app-status-badge></dd>
+          <dt>Version</dt>
+          <dd>{{ usv.version || '—' }}</dd>
+          <dt>Last heartbeat</dt>
+          <dd>{{ usv.last_heartbeat ? (usv.last_heartbeat | date: 'medium') : 'Never' }}</dd>
+        </dl>
+      </div>
+    }
+  </section>
+
+  <section class="section">
+    <h2>Integrations</h2>
+    <p class="notice">
+      These are seeded configuration records only — none of them are live connections in Phase 0.
+    </p>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Engine</th>
+            <th>Status</th>
+            <th>Last successful sync</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (integration of integrations(); track integration.integration_id) {
+            <tr>
+              <td>{{ integration.name || '—' }}</td>
+              <td>{{ integration.integration_type || '—' }}</td>
+              <td>
+                <span
+                  class="engine-badge"
+                  [class.engine-badge--fixed]="integration.is_fixed_engine"
+                  [class.engine-badge--pluggable]="!integration.is_fixed_engine"
+                >
+                  {{ integration.is_fixed_engine ? 'Fixed engine' : 'Pluggable' }}
+                </span>
+              </td>
+              <td><app-status-badge [status]="integration.status"></app-status-badge></td>
+              <td>{{ integration.last_success_at ? (integration.last_success_at | date: 'medium') : 'Never' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}
