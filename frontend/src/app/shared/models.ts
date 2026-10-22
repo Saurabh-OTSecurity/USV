@@ -1,5 +1,7 @@
 export interface Site {
   site_id: string;
+  business_unit_id?: string;
+  tribot_url?: string | null;
   site_code: string;
   name: string;
   description: string | null;

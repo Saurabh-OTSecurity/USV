@@ -1,0 +1,48 @@
+@if (error()) { <p class="error-text">{{ error() }}</p> }
+@if (message()) { <p class="success-text">{{ message() }}</p> }
+
+<section class="section">
+  <h2>Missing from Tribot</h2>
+  <p class="small-note">The site's last full resync no longer listed these. USV never deletes them on its own: confirm they are gone, or keep them.</p>
+  <table class="data-table">
+    <thead><tr><th>Asset</th><th>Type</th><th>Last seen in USV</th><th></th></tr></thead>
+    <tbody>
+      @for (a of missing(); track a.asset_id) {
+        <tr>
+          <td>{{ a.name || a.source_asset_id }}</td><td>{{ a.device_type || '—' }}</td>
+          <td>{{ a.last_seen_at | date: 'short' }}</td>
+          <td><button class="btn" type="button" (click)="confirm(a)">Confirm gone</button>
+              <button class="btn" type="button" (click)="dismiss(a)">Keep</button></td>
+        </tr>
+      } @empty { <tr><td colspan="4">None.</td></tr> }
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2>Silent</h2>
+  <p class="small-note">Not seen by Tribot for longer than the site's silence limit.</p>
+  <table class="data-table">
+    <thead><tr><th>Asset</th><th>Type</th><th>Zone</th><th>Last seen</th></tr></thead>
+    <tbody>
+      @for (a of silent(); track a.asset_id) {
+        <tr><td>{{ a.name || a.source_asset_id }}</td><td>{{ a.device_type || '—' }}</td>
+            <td>{{ a.industrial_zone || '—' }}</td><td>{{ a.last_seen_at | date: 'short' }}</td></tr>
+      } @empty { <tr><td colspan="4">None.</td></tr> }
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2>Decommissioned</h2>
+  <table class="data-table">
+    <thead><tr><th>Asset</th><th>Reason</th><th>By</th><th>When</th><th>Restored</th></tr></thead>
+    <tbody>
+      @for (d of decommissioned(); track d.source_asset_id) {
+        <tr><td>{{ d.asset_name || d.source_asset_id }}</td><td>{{ d.reason }}</td>
+            <td>{{ d.decommissioned_by }} ({{ d.origin }})</td><td>{{ d.decommissioned_at | date: 'short' }}</td>
+            <td>{{ d.restored_at ? (d.restored_at | date: 'short') : '—' }}</td></tr>
+      } @empty { <tr><td colspan="5">None.</td></tr> }
+    </tbody>
+  </table>
+</section>

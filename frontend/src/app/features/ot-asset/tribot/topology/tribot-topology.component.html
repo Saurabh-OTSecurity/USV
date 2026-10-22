@@ -1,0 +1,249 @@
+<span class="mapnote">
+  Tribot: Digital Twin Topology — GET /api/v1/topology, /topology/zones, /topology/purdue-levels
+</span>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="toprow">
+    <span class="stat">{{ positionedNodes().length }} nodes</span>
+    <span class="stat">{{ positionedLinks().length }} conversations</span>
+    <span class="stat">{{ totalFlows() }} flows</span>
+    <span class="stat">{{ lanes().length }} Purdue tiers</span>
+    @if (commCounts()['policyViolation']) {
+      <span class="pill pill-red">{{ commCounts()['policyViolation'] }} policy violations</span>
+    }
+    @if (commCounts()['crossZone']) {
+      <span class="pill pill-amber">{{ commCounts()['crossZone'] }} cross-zone</span>
+    }
+    <span style="flex: 1"></span>
+    <button type="button" class="btn" (click)="zoomOut()" aria-label="Zoom out">−</button>
+    <button type="button" class="btn" (click)="zoomIn()" aria-label="Zoom in">+</button>
+    <button type="button" class="btn" (click)="resetView()">Reset</button>
+  </div>
+
+  <div class="filter-row">
+    @for (f of filters; track f.id) {
+      <button
+        type="button"
+        class="tog"
+        [class.active]="activeFilter() === f.id"
+        (click)="setFilter(f.id)"
+      >
+        {{ f.label }}
+      </button>
+    }
+    @if (selectedNode(); as sel) {
+      <span class="stat">
+        Focused on {{ sel.label || sel.nodeId }}
+        <button type="button" class="btn" (click)="clearSelection()">Clear</button>
+      </span>
+    }
+  </div>
+
+  <div class="card topo-canvas">
+    <svg
+      [attr.viewBox]="'0 0 ' + canvasWidth + ' ' + canvasHeight()"
+      [style.width.%]="100"
+      [style.height.px]="canvasHeight() * zoom()"
+      role="img"
+      aria-label="Discovered topology grouped into Purdue tiers"
+    >
+      <!-- Purdue tier bands, L4 at the top down to L1 -->
+      @for (lane of lanes(); track lane.tier.key) {
+        <g>
+          <rect
+            x="0" [attr.y]="lane.y" [attr.width]="canvasWidth" [attr.height]="lane.height"
+            [attr.fill]="lane.tier.band" rx="6"
+          />
+          <line
+            x1="0" [attr.y1]="lane.y" [attr.x2]="canvasWidth" [attr.y2]="lane.y"
+            [attr.stroke]="lane.tier.accent" stroke-opacity="0.5" stroke-width="1"
+          />
+          <text
+            x="12" [attr.y]="lane.y + 20" font-size="11" font-weight="700"
+            [attr.fill]="lane.tier.accent" letter-spacing="0.4"
+          >
+            {{ lane.label }}
+          </text>
+          <text
+            [attr.x]="canvasWidth - 12" [attr.y]="lane.y + 20" font-size="10"
+            text-anchor="end" fill="#a79cb3"
+          >
+            {{ lane.nodeCount }} node{{ lane.nodeCount === 1 ? '' : 's' }}
+          </text>
+        </g>
+      }
+
+      <!-- Communications, classified (baseline / cross-zone / high frequency / suspicious) -->
+      <g>
+        @for (link of visibleLinks(); track link.conversationId) {
+          <line
+            [attr.x1]="link.x1" [attr.y1]="link.y1"
+            [attr.x2]="link.x2" [attr.y2]="link.y2"
+            [attr.stroke]="styleFor(link.commType).stroke"
+            [attr.stroke-width]="styleFor(link.commType).width"
+            [attr.stroke-dasharray]="styleFor(link.commType).dash"
+            stroke-opacity="0.75"
+            class="topo-edge"
+            (mouseenter)="showLinkTooltip(link)"
+            (mouseleave)="hideLinkTooltip()"
+          />
+        }
+      </g>
+
+      <!-- Nodes -->
+      @for (node of positionedNodes(); track node.nodeId) {
+        <g
+          [attr.transform]="'translate(' + node.x + ',' + node.y + ')'"
+          class="topo-node"
+          [class.faded]="isFaded(node)"
+          [class.selected]="selectedNodeId() === node.nodeId"
+          (click)="selectNode(node.nodeId)"
+        >
+          <rect
+            [attr.width]="nodeWidth" [attr.height]="nodeHeight" rx="5"
+            fill="#161320" [attr.stroke]="node.color"
+            [attr.stroke-width]="selectedNodeId() === node.nodeId ? 2.5 : 1.4"
+          />
+          <!-- Same fields Tribot's own topology card shows: name, IP, device
+               type, vendor, protocols and a risk badge (gap DT-16). -->
+          <text x="8" y="15" font-size="9" font-weight="700" fill="#f2eef6">
+            {{ (node.hostname && node.hostname !== 'Unknown' ? node.hostname
+                : (node.ip || node.nodeId)).slice(0, 18) }}
+          </text>
+          <text x="8" y="27" font-size="8.5" fill="#cfc6d8" font-family="monospace">
+            {{ (node.ip || '—').slice(0, 21) }}
+          </text>
+          <text x="8" y="38" font-size="7.5" fill="#a79cb3">
+            {{ (node.deviceType || node.tier.key).slice(0, 14) }}{{ node.vendor && node.vendor !== 'Unknown' ? ' · ' + node.vendor.slice(0, 12) : '' }}
+          </text>
+          @if (topProtocols(node).length) {
+            <text x="8" y="49" font-size="7" fill="#8f86a0">
+              {{ topProtocols(node).join(' · ').slice(0, 24) }}
+            </text>
+          }
+          <rect [attr.x]="nodeWidth - 30" y="5" width="24" height="13" rx="3"
+                [attr.fill]="riskColor(node.riskScore)" fill-opacity="0.18"
+                [attr.stroke]="riskColor(node.riskScore)" stroke-width="0.8" />
+          <text [attr.x]="nodeWidth - 18" y="14.5" text-anchor="middle" font-size="8"
+                font-weight="700" [attr.fill]="riskColor(node.riskScore)">
+            {{ node.riskScore ?? '?' }}
+          </text>
+          @if (node.cveCount) {
+            <text [attr.x]="nodeWidth - 8" y="38" text-anchor="end" font-size="7"
+                  font-weight="700" fill="#c0392b">
+              {{ node.cveCount }} CVE
+            </text>
+          }
+          @if (node.lifecycle === 'End of Support') {
+            <text [attr.x]="nodeWidth - 8" y="49" text-anchor="end" font-size="6.5" fill="#d0973a">
+              End of Support
+            </text>
+          }
+          @if (node.alertCount) {
+            <circle [attr.cx]="nodeWidth - 7" [attr.cy]="nodeHeight - 8" r="6.5" fill="#c0392b" />
+            <text [attr.x]="nodeWidth - 7" [attr.y]="nodeHeight - 5" text-anchor="middle"
+                  font-size="7" font-weight="700" fill="#fff">
+              {{ node.alertCount }}
+            </text>
+          }
+        </g>
+      }
+    </svg>
+
+    @if (hoveredLink(); as h) {
+      <div class="topo-tooltip">
+        <strong>{{ nodeLabel(h.sourceNodeId) }} → {{ nodeLabel(h.targetNodeId) }}</strong>
+        <div>{{ styleFor(h.commType).label }}{{ h.isPolicyViolation ? ' · policy violation' : '' }}</div>
+        <div>{{ h.protocols.length ? h.protocols.join(', ') : 'unknown' }}</div>
+        <div>
+          {{ h.packetCount }} packets · {{ h.byteCount }} bytes ·
+          {{ h.flowCount }} flow{{ h.flowCount === 1 ? '' : 's' }}
+        </div>
+        <div>{{ h.bidirectional ? 'Bidirectional' : 'One-way' }}</div>
+        <div>Last seen {{ h.lastSeen ? (h.lastSeen | date: 'medium') : '—' }}</div>
+      </div>
+    }
+
+    <div class="legend">
+      @for (entry of commStyles | keyvalue; track entry.key) {
+        <span class="legend-item">
+          <span class="legend-swatch" [style.background]="entry.value.stroke"></span>
+          {{ entry.value.label }} ({{ commCounts()[entry.key] || 0 }})
+        </span>
+      }
+    </div>
+    <p class="small-note">
+      Node border colour is the device type; the red badge is the number of open alerts naming that
+      asset. A link spanning more than one Purdue tier is drawn as a policy violation, matching
+      Tribot's own rule. Not yet mirrored from Tribot: the timeline scrubber, the baseline overlay
+      (the external API exposes no baseline data), and the eight-tab asset drawer.
+    </p>
+  </div>
+
+  @if (selectedNode(); as sel) {
+    <div class="card">
+      <strong>{{ sel.label || sel.nodeId }}</strong>
+      <dl class="detail-fields" style="margin-top: 8px;">
+        <dt>Device type</dt><dd>{{ sel.deviceType || '—' }}</dd>
+        <dt>Purdue tier</dt><dd>{{ sel.tier.key }} — {{ sel.tier.defaultLabel }}</dd>
+        <dt>IP</dt><dd>{{ sel.ip || '—' }}</dd>
+        <dt>MAC</dt><dd>{{ sel.mac || '—' }}</dd>
+        <dt>Manufacturer</dt><dd>{{ sel.vendor || '—' }}</dd>
+        <dt>Risk</dt><dd>{{ sel.riskScore ?? '—' }} ({{ sel.riskLevel || 'unknown' }})</dd>
+        <dt>Identification confidence</dt><dd>{{ sel.confidenceScore ?? '—' }}%</dd>
+        <dt>Protocols</dt><dd>{{ sel.protocols.length ? sel.protocols.join(', ') : '—' }}</dd>
+        <dt>CVEs</dt><dd>{{ sel.cveCount }}</dd>
+        <dt>Lifecycle</dt><dd>{{ sel.lifecycle }}</dd>
+        <dt>Zone</dt><dd>{{ sel.zoneId || 'Unassigned' }}</dd>
+        <dt>Open alerts</dt><dd>{{ sel.alertCount }}</dd>
+        <dt>Conversations</dt><dd>{{ selectedNodeLinks().length }}</dd>
+      </dl>
+    </div>
+  }
+
+  <div class="card table-wrapper" style="padding: 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Target</th>
+          <th>Classification</th>
+          <th>Protocols</th>
+          <th>Direction</th>
+          <th>Packets</th>
+          <th>Bytes</th>
+          <th>Last seen</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (link of visibleLinks(); track link.conversationId) {
+          <tr>
+            <td>{{ nodeLabel(link.sourceNodeId) }}</td>
+            <td>{{ nodeLabel(link.targetNodeId) }}</td>
+            <td>
+              <span class="pill" [style.color]="styleFor(link.commType).stroke">
+                {{ styleFor(link.commType).label }}
+              </span>
+              @if (link.isPolicyViolation) {
+                <span class="pill pill-red">Policy violation</span>
+              }
+            </td>
+            <td>{{ link.protocols.length ? link.protocols.join(', ') : '—' }}</td>
+            <td>{{ link.bidirectional ? 'Both' : 'One-way' }}</td>
+            <td>{{ link.packetCount }}</td>
+            <td>{{ link.byteCount }}</td>
+            <td>{{ link.lastSeen ? (link.lastSeen | date: 'medium') : '—' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8">No communication links match the current filter.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

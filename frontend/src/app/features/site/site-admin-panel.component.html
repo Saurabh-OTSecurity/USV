@@ -1,0 +1,101 @@
+@if (message()) { <p class="success-text">{{ message() }}</p> }
+@if (error()) { <p class="error-text">{{ error() }}</p> }
+
+<section class="section">
+  <h2>Tribot address</h2>
+  <div class="filter-row">
+    <input [(ngModel)]="tribotUrl" placeholder="https://tribot.site.example" size="40" />
+    <button class="btn" type="button" (click)="saveTribotUrl()">Save</button>
+  </div>
+  <p class="small-note">Where people open this site's Tribot. "Open in Tribot" signs them in there through USV.</p>
+</section>
+
+<section class="section">
+  <h2>Ingestion tokens</h2>
+  @if (newToken(); as t) {
+    <div class="notice"><strong>Copy now</strong> — shown once.</div>
+    <p class="mono token-box">{{ t }}</p>
+    <button class="btn" type="button" (click)="newToken.set(null)">I've stored it</button>
+  }
+  <table class="data-table">
+    <thead><tr><th>Token id</th><th>Status</th><th>Issued</th><th>Last used</th><th></th></tr></thead>
+    <tbody>
+      @for (t of tokens(); track t.token_id) {
+        <tr><td class="mono">{{ t.token_id.slice(0, 8) }}…</td><td>{{ t.status }}</td>
+            <td>{{ t.created_at | date: 'short' }}</td><td>{{ t.last_used_at ? (t.last_used_at | date: 'short') : 'never' }}</td>
+            <td>@if (t.status === 'active') { <button class="btn" type="button" (click)="revoke(t)">Revoke</button> }</td></tr>
+      } @empty { <tr><td colspan="5">No tokens.</td></tr> }
+    </tbody>
+  </table>
+  <button class="btn" type="button" (click)="issueToken()">Issue new token</button>
+  <p class="small-note">Rotate: issue a new token, update the Tribot, test it, then revoke the old one.</p>
+</section>
+
+<section class="section">
+  <h2>Planned downtime</h2>
+  <p class="small-note">During a window, silent and disconnected alerts stay quiet for this site.</p>
+  <table class="data-table">
+    <thead><tr><th>From</th><th>To</th><th>Reason</th><th></th></tr></thead>
+    <tbody>
+      @for (d of downtime(); track d.downtime_id) {
+        <tr><td>{{ d.starts_at | date: 'short' }}</td><td>{{ d.ends_at | date: 'short' }}</td><td>{{ d.reason }}</td>
+            <td><button class="btn" type="button" (click)="removeDowntime(d)">Remove</button></td></tr>
+      } @empty { <tr><td colspan="4">None planned.</td></tr> }
+    </tbody>
+  </table>
+  <div class="filter-row">
+    <label>From <input type="datetime-local" [(ngModel)]="dtStart" /></label>
+    <label>To <input type="datetime-local" [(ngModel)]="dtEnd" /></label>
+    <label>Reason <input [(ngModel)]="dtReason" placeholder="substation maintenance" /></label>
+    <button class="btn" type="button" [disabled]="!dtStart || !dtEnd || dtReason.trim().length < 3" (click)="addDowntime()">Add</button>
+  </div>
+</section>
+
+@if (limits(); as l) {
+  <section class="section">
+    <h2>Monitoring limits</h2>
+    <p class="small-note">Leave a field empty to use the customer default. Allowed ranges are set by the platform.</p>
+    <table class="data-table">
+      <thead><tr><th>Setting</th><th>This site</th><th>In effect</th><th>Allowed</th></tr></thead>
+      <tbody>
+        @for (k of limitKeys(); track k) {
+          <tr><td>{{ k.replaceAll('_', ' ') }}</td>
+              <td><input type="number" [(ngModel)]="limitEdit[k]" [min]="l.bounds[k][0]" [max]="l.bounds[k][1]" /></td>
+              <td>{{ l.effective[k] }}</td><td>{{ l.bounds[k][0] }}–{{ l.bounds[k][1] }}</td></tr>
+        }
+      </tbody>
+    </table>
+    <button class="btn" type="button" (click)="saveLimits()">Save limits</button>
+  </section>
+}
+
+<section class="section">
+  <h2>Break-glass</h2>
+  <p class="small-note">The site's emergency Tribot account, for when USV is unreachable. Opening it needs two approvals and raises a critical alert.</p>
+  <div class="filter-row">
+    <input [(ngModel)]="bgReason" placeholder="Why it is needed" size="40" />
+    <button class="btn" type="button" [disabled]="bgReason.trim().length < 5" (click)="requestBreakGlass()">Request</button>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Approvers for this site</h2>
+  <p class="small-note">Approve password resets of this site's engineers and viewers. With none named, the site's admins approve.</p>
+  <table class="data-table">
+    <thead><tr><th>Person</th><th>Role</th><th></th></tr></thead>
+    <tbody>
+      @for (a of approvers(); track a.approver_id) {
+        <tr><td>{{ personName(a.user_id) }}</td><td>{{ a.is_backup ? 'backup' : 'approver' }}</td>
+            <td><button class="btn" type="button" (click)="removeApprover(a)">Remove</button></td></tr>
+      } @empty { <tr><td colspan="3">None named.</td></tr> }
+    </tbody>
+  </table>
+  <div class="filter-row">
+    <select [(ngModel)]="approverUser">
+      <option value="">Choose a person…</option>
+      @for (p of people(); track p.user_id) { <option [value]="p.user_id">{{ p.username }} ({{ p.role }})</option> }
+    </select>
+    <label><input type="checkbox" [(ngModel)]="approverBackup" /> backup</label>
+    <button class="btn" type="button" [disabled]="!approverUser" (click)="addApprover()">Add approver</button>
+  </div>
+</section>

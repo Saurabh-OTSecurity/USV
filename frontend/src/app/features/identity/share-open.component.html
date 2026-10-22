@@ -1,0 +1,19 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand-mark"><span></span><strong>Tribastion</strong></div>
+    <h1>One-time secret</h1>
+    @if (secret(); as s) {
+      @if (s.username) { <p>User name: <span class="mono">{{ s.username }}</span></p> }
+      <p>Temporary password:</p>
+      <p class="mono token-box">{{ s.secret }}</p>
+      <p class="notice">This is shown once and is now destroyed. Sign in with it and you will be asked to set your own password.</p>
+      <a routerLink="/login">Sign in</a>
+    } @else if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+      <p class="small-note">Ask your admin for a new link.</p>
+    } @else {
+      <p>This link shows a secret <strong>once</strong>. Make sure nobody can see your screen.</p>
+      <button type="button" (click)="reveal()">Show it</button>
+    }
+  </div>
+</div>

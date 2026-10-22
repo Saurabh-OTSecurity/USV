@@ -1,0 +1,36 @@
+<div class="tile" [class.stale]="stale()" (click)="open.emit(summary.site_id)" (keydown.enter)="open.emit(summary.site_id)" tabindex="0" role="button" [attr.aria-label]="'Open ' + summary.site_code">
+  <div class="tile-head">
+    <div>
+      <strong>{{ summary.site_code }}</strong> <span class="muted">{{ summary.name }}</span>
+      @if (stale()) { <span class="pill pill-red">{{ summary.state }}</span> }
+    </div>
+    <div class="counts">
+      <span>{{ summary.assets }} assets</span>
+      @if (severityCount('critical')) { <span class="pill pill-red">{{ severityCount('critical') }} critical</span> }
+      @if (severityCount('high')) { <span class="pill pill-amber">{{ severityCount('high') }} high</span> }
+      @if (severityCount('medium')) { <span class="pill pill-blue">{{ severityCount('medium') }} medium</span> }
+      @if (severityCount('low')) { <span class="pill pill-neutral">{{ severityCount('low') }} low</span> }
+    </div>
+    <div class="muted small">Last seen {{ summary.last_contact_at ? (summary.last_contact_at | date: 'short') : 'never' }}</div>
+  </div>
+
+  @if (!hasMatch()) {
+    <div class="empty">No match for the filters</div>
+  } @else if (!loaded()) {
+    <div class="empty">Loading…</div>
+  } @else if (nodes().length === 0) {
+    <div class="empty">No assets reported yet</div>
+  } @else {
+    <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" class="topo" aria-hidden="true">
+      @for (e of edges(); track $index) {
+        <line [attr.x1]="e.a.x" [attr.y1]="e.a.y" [attr.x2]="e.b.x" [attr.y2]="e.b.y"
+              [class.dim]="e.a.dim || e.b.dim"><title>{{ e.protocol }}</title></line>
+      }
+      @for (n of nodes(); track n.id) {
+        <g [class.dim]="n.dim" [class.silent]="n.silent" [class.missing]="n.missing">
+          <circle [attr.cx]="n.x" [attr.cy]="n.y" r="7"><title>{{ n.label }}{{ n.silent ? ' (silent)' : '' }}{{ n.missing ? ' (missing from Tribot)' : '' }}</title></circle>
+        </g>
+      }
+    </svg>
+  }
+</div>

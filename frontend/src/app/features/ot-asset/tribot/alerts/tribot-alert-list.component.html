@@ -1,0 +1,77 @@
+<span class="mapnote">Tribot: Alerts — GET /api/v1/alerts</span>
+
+<div class="filter-row">
+  <div>
+    <label>Severity</label>
+    <select [(ngModel)]="severity" (change)="reload()">
+      <option value="">All</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+  </div>
+  <div>
+    <label>Status</label>
+    <select [(ngModel)]="status" (change)="reload()">
+      <option value="">All</option>
+      <option value="new">New</option>
+      <option value="investigating">Investigating</option>
+      <option value="acknowledged">Acknowledged</option>
+      <option value="resolved">Resolved</option>
+      <option value="suppressed">Suppressed</option>
+    </select>
+  </div>
+  <div>
+    <label>Category</label>
+    <input [(ngModel)]="category" (change)="reload()" placeholder="e.g. cross_zone" />
+  </div>
+  <div>
+    <button type="button" class="btn" (click)="reload()">Apply filters</button>
+  </div>
+</div>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="toprow">
+    <span class="stat">{{ alerts().length }} alert{{ alerts().length === 1 ? '' : 's' }} loaded</span>
+  </div>
+  <div class="card table-wrapper" style="padding: 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Title</th>
+          <th>Severity</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Asset</th>
+          <th>Protocol</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (alert of alerts(); track alert.alertId) {
+          <tr class="clickable" [routerLink]="ctx.link('alerts', alert.alertId)">
+            <td>{{ alert.createdAt ? (alert.createdAt | date: 'medium') : '—' }}</td>
+            <td>{{ alert.title || '—' }}</td>
+            <td><span class="pill" [class]="severityPillClass(alert.severity)">{{ alert.severity || '—' }}</span></td>
+            <td>{{ alert.category || '—' }}</td>
+            <td><span class="pill" [class]="alertStatusPillClass(alert.status)">{{ alert.status || '—' }}</span></td>
+            <td>{{ alert.assetName || alert.assetIp || '—' }}</td>
+            <td>{{ alert.protocol || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7">No alerts returned by Tribot for the current filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (nextCursor()) {
+    <button type="button" class="btn" (click)="loadMore()" [disabled]="loadingMore()">
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  }
+}

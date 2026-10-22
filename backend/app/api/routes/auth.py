@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.rbac import get_current_user, get_db
+from app.core.tenancy import MULTI_TENANT_POOL, resolve_tenant_database_name_by_code, session_for_tenant
 from app.models.usv_user import UsvUser
 from app.schemas.usv_user import LoginRequest, LoginResponse, UserProfile
 from app.services.auth_service import AuthService, InvalidCredentialsError
@@ -22,13 +24,26 @@ def _invalid_credentials_error() -> HTTPException:
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)) -> LoginResponse:
-    service = AuthService(db)
-    try:
-        token, user = service.login(payload.username, payload.password, _client_ip(request))
-    except InvalidCredentialsError:
-        raise _invalid_credentials_error()
+    tenant_id = None
+    session = db
+    owns_session = False
 
-    return LoginResponse(token=token, user=UserProfile.model_validate(user))
+    if settings.deployment_mode == MULTI_TENANT_POOL and payload.tenant_code:
+        tenant_id, database_name = resolve_tenant_database_name_by_code(payload.tenant_code)
+        session = session_for_tenant(tenant_id)
+        owns_session = True
+
+    try:
+        service = AuthService(session)
+        try:
+            token, user = service.login(payload.username, payload.password, _client_ip(request), tenant_id=tenant_id)
+        except InvalidCredentialsError:
+            raise _invalid_credentials_error()
+
+        return LoginResponse(token=token, user=UserProfile.model_validate(user))
+    finally:
+        if owns_session:
+            session.close()
 
 
 @router.get("/me", response_model=UserProfile)

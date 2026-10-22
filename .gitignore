@@ -16,3 +16,11 @@ backend/.devdb/
 
 .vscode/
 .idea/
+
+# signing key (SSO) and encryption key (break-glass, secure shares) -- never commit
+.secrets/
+backend/.secrets/
+
+# Local .env backups -- these contain real credentials, never commit them.
+.env.bak*
+backend/.env.bak*

@@ -22,6 +22,10 @@ export class ShellComponent implements OnInit {
     return this.currentUser()?.role === PLATFORM_ADMIN_ROLE;
   }
 
+  get isCustomerAdmin(): boolean {
+    return this.currentUser()?.role === 'usv_customer_admin';
+  }
+
   ngOnInit(): void {
     // Re-validates the stored token against the backend. If it's been
     // tampered with, expired, or the user was deactivated server-side,

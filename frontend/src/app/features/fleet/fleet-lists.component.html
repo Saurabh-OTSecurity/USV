@@ -1,0 +1,133 @@
+<h1>Fleet</h1>
+
+<div class="filter-row">
+  <label>Business
+    <select [ngModel]="selection.businessUnitId()" (ngModelChange)="selection.chooseBusiness($event); clearNarrow()">
+      @for (u of selection.businessUnits(); track u.business_unit_id) {
+        <option [value]="u.business_unit_id">{{ u.name }}</option>
+      }
+    </select>
+  </label>
+  <span class="small-note">{{ selection.tickedSites().length }} of {{ selection.sitesInBusiness().length }} sites ticked
+    · <a routerLink="/business">change in Business view</a></span>
+  @if (onlySite(); as one) {
+    <span class="pill pill-blue">Only {{ selection.siteName(one) }} <a href="" (click)="$event.preventDefault(); clearNarrow()">×</a></span>
+  }
+  <label>Search <input [ngModel]="textFilter()" (ngModelChange)="textFilter.set($event)" placeholder="title, type, CVE…" /></label>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><span class="num">{{ strip().sev['critical'] || 0 }}</span><span class="lbl">critical alerts</span></div>
+  <div class="kpi"><span class="num">{{ strip().sev['high'] || 0 }}</span><span class="lbl">high</span></div>
+  <div class="kpi"><span class="num">{{ strip().sev['medium'] || 0 }}</span><span class="lbl">medium</span></div>
+  <div class="kpi"><span class="num">{{ strip().sev['low'] || 0 }}</span><span class="lbl">low</span></div>
+  <div class="kpi"><span class="num">{{ strip().incidents }}</span><span class="lbl">open incidents</span></div>
+  <div class="kpi"><span class="num">{{ strip().remediations }}</span><span class="lbl">open remediations</span></div>
+  <div class="kpi"><span class="num">{{ strip().assets }}</span><span class="lbl">assets ({{ strip().silent }} silent)</span></div>
+</div>
+
+<div class="hz-tabs">
+  @for (t of [['summary','Per site'],['alerts','Alerts'],['incidents','Incidents'],['remediations','Remediations'],['assets','Assets'],['related','Related across sites']]; track t[0]) {
+    <button type="button" class="hz-tab" [class.active]="tab() === t[0]" (click)="show($any(t[0]))">{{ t[1] }}</button>
+  }
+</div>
+
+@if (loading()) { <p>Loading…</p> }
+
+@switch (tab()) {
+  @case ('summary') {
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>State</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Incidents</th><th>Remediations</th><th>Assets</th><th>Silent</th><th>Missing</th></tr></thead>
+      <tbody>
+        @for (r of worstFirst(); track r.site_id) {
+          <tr>
+            <td><a href="" (click)="$event.preventDefault(); openSite(r.site_id)">{{ r.site_code }}</a> <span class="small-note">{{ r.name }}</span></td>
+            <td>{{ r.state }}</td>
+            <td>{{ r.open_alerts['critical'] || 0 }}</td><td>{{ r.open_alerts['high'] || 0 }}</td>
+            <td>{{ r.open_alerts['medium'] || 0 }}</td><td>{{ r.open_alerts['low'] || 0 }}</td>
+            <td>{{ r.open_incidents }}</td><td>{{ r.open_remediations }}</td>
+            <td>{{ r.assets }}</td><td>{{ r.silent_assets }}</td><td>{{ r.missing_assets }}</td>
+          </tr>
+        } @empty { <tr><td colspan="11">Tick sites to see them here.</td></tr> }
+      </tbody>
+    </table>
+  }
+  @case ('alerts') {
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>Severity</th><th>Title</th><th>Category</th><th>CVE</th><th>Status</th><th>When</th></tr></thead>
+      <tbody>
+        @for (a of alerts(); track a.alert_id) {
+          @if (matches(a.title, a.category, a.cve_id)) {
+            <tr [class.muted-row]="!isOpen(a.status)">
+              <td><a href="" (click)="$event.preventDefault(); narrowTo(a.site_id)">{{ selection.siteName(a.site_id) }}</a></td>
+              <td>{{ a.severity }}</td><td>{{ a.title }}</td><td>{{ a.category }}</td><td>{{ a.cve_id || '' }}</td>
+              <td>{{ a.status }}{{ a.closed_reason ? ' — ' + a.closed_reason : '' }}</td>
+              <td>{{ a.occurred_at | date: 'short' }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+  @case ('incidents') {
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>Title</th><th>Severity</th><th>Status</th><th>Owner</th></tr></thead>
+      <tbody>
+        @for (i of incidents(); track i.incident_id) {
+          @if (matches(i.title, i.owner, i.status)) {
+            <tr><td><a href="" (click)="$event.preventDefault(); narrowTo(i.site_id)">{{ selection.siteName(i.site_id) }}</a></td>
+                <td>{{ i.title }}</td><td>{{ i.severity }}</td><td>{{ i.status }}</td><td>{{ i.owner || '—' }}</td></tr>
+          }
+        } @empty { <tr><td colspan="5">No incidents from these sites.</td></tr> }
+      </tbody>
+    </table>
+  }
+  @case ('remediations') {
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>Title</th><th>Status</th><th>Owner</th><th>Planned</th></tr></thead>
+      <tbody>
+        @for (r of remediations(); track r.remediation_id) {
+          @if (matches(r.title, r.owner, r.status)) {
+            <tr><td><a href="" (click)="$event.preventDefault(); narrowTo(r.site_id)">{{ selection.siteName(r.site_id) }}</a></td>
+                <td>{{ r.title }}</td><td>{{ r.status }}</td><td>{{ r.owner || '—' }}</td><td>{{ r.planned_date || '—' }}</td></tr>
+          }
+        } @empty { <tr><td colspan="5">No remediations from these sites.</td></tr> }
+      </tbody>
+    </table>
+  }
+  @case ('assets') {
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>Name</th><th>Type</th><th>Risk</th><th>State</th><th>Last seen</th></tr></thead>
+      <tbody>
+        @for (a of assets(); track a.asset_id) {
+          @if (matches(a.name, a.device_type, a.risk_level)) {
+            <tr><td><a href="" (click)="$event.preventDefault(); narrowTo(a.site_id)">{{ selection.siteName(a.site_id) }}</a></td>
+                <td>{{ a.name || a.source_asset_id }}</td><td>{{ a.device_type || '—' }}</td><td>{{ a.risk_level || '—' }}</td>
+                <td>{{ a.lifecycle_state }}</td><td>{{ a.last_seen_at | date: 'short' }}</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+  @case ('related') {
+    <table class="data-table">
+      <thead><tr><th>Finding</th><th>Sites involved</th><th>Alerts</th></tr></thead>
+      <tbody>
+        @for (g of related(); track g.correlation_group_id) {
+          <tr><td>{{ g.title }}</td>
+              <td>@for (s of g.site_ids; track s) { <a href="" class="pill pill-neutral" (click)="$event.preventDefault(); narrowTo(s)">{{ selection.siteName(s) }}</a> }</td>
+              <td>{{ g.member_ids.length }}</td></tr>
+        } @empty { <tr><td colspan="3">No CVE shared by the same asset type across two or more of these sites.</td></tr> }
+      </tbody>
+    </table>
+  }
+}
+
+@if (tab() !== 'summary' && tab() !== 'related' && total() > 500) {
+  <div class="filter-row">
+    <button class="btn" type="button" [disabled]="offset() === 0" (click)="page(-1)">Previous</button>
+    <span>{{ offset() + 1 }}–{{ offset() + 500 > total() ? total() : offset() + 500 }} of {{ total() }}</span>
+    <button class="btn" type="button" [disabled]="offset() + 500 >= total()" (click)="page(1)">Next</button>
+    <span class="small-note">Narrow by site first; deep pages across the whole fleet are slow.</span>
+  </div>
+}

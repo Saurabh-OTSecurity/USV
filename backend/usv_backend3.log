@@ -1,0 +1,97 @@
+2026-09-04 06:29:57,200 INFO usv.startup logging configured for app_env=development
+INFO:     Started server process [20492]
+INFO:     Waiting for application startup.
+2026-09-04 06:29:57,227 INFO usv.app USV backend starting up (app_env=development)
+2026-09-04 06:29:57,331 INFO usv.app database connection verified
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57337 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59532 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+2026-09-04 06:30:18,148 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=2 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:59533 - "GET /api/v1/tribot/assets?pageSize=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58356 - "OPTIONS /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58356 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:65182 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65182 - "OPTIONS /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63110 - "OPTIONS /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63110 - "OPTIONS /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63110 - "OPTIONS /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65182 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63110 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63110 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65182 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58088 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58088 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58088 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49383 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52850 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63882 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63882 - "OPTIONS /api/v1/site/d759f57a-e75e-4a95-9ed7-decf1fd4f508 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63882 - "GET /api/v1/site/d759f57a-e75e-4a95-9ed7-decf1fd4f508 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63882 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61308 - "OPTIONS /api/v1/usv/4beb982f-1ea6-4c1d-8b7d-d9b95433e262 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61308 - "GET /api/v1/usv/4beb982f-1ea6-4c1d-8b7d-d9b95433e262 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61308 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57818 - "OPTIONS /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:37:10,753 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:57818 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56520 - "OPTIONS /api/v1/tribot/topology?pageSize=300 HTTP/1.1" 200 OK
+2026-09-04 06:37:19,545 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/topology?pageSize=300 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56520 - "GET /api/v1/tribot/topology?pageSize=300 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56100 - "OPTIONS /api/v1/tribot/alerts?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:37:34,310 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/alerts?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56100 - "GET /api/v1/tribot/alerts?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56100 - "OPTIONS /api/v1/tribot/vulnerabilities?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:37:39,385 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/vulnerabilities?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56100 - "GET /api/v1/tribot/vulnerabilities?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:37:41,893 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/alerts?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56100 - "GET /api/v1/tribot/alerts?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:37:42,653 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/topology?pageSize=300 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56100 - "GET /api/v1/tribot/topology?pageSize=300 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55910 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60318 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64649 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62483 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62483 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62483 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57519 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57519 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52873 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57519 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52873 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52873 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52873 - "GET /api/v1/usv HTTP/1.1" 200 OK
+2026-09-04 06:44:42,387 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:52873 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51168 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+2026-09-04 06:45:35,089 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:51168 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49969 - "OPTIONS /api/v1/auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62161 - "POST /api/v1/auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55226 - "OPTIONS /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55226 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55226 - "OPTIONS /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55312 - "OPTIONS /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61579 - "OPTIONS /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61579 - "OPTIONS /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55226 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55312 - "GET /api/v1/site HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61579 - "GET /api/v1/usv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55226 - "GET /api/v1/integrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57101 - "OPTIONS /api/v1/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57101 - "GET /api/v1/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49994 - "OPTIONS /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+2026-09-04 06:48:34,842 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49994 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59690 - "OPTIONS /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64529 - "OPTIONS /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59690 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+2026-09-04 07:15:58,421 INFO httpx HTTP Request: GET http://127.0.0.1:8000/api/v1/assets?pageSize=50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64529 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62845 - "OPTIONS /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53634 - "OPTIONS /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53634 - "GET /api/v1/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62845 - "GET /api/v1/tribot/assets?pageSize=50 HTTP/1.1" 401 Unauthorized

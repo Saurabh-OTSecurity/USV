@@ -4,11 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SiteService } from '../../shared/site.service';
 import { Site } from '../../shared/models';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { SiteAdminPanelComponent } from './site-admin-panel.component';
 
 @Component({
   selector: 'app-site-detail',
   standalone: true,
-  imports: [RouterLink, StatusBadgeComponent],
+  imports: [RouterLink, StatusBadgeComponent, SiteAdminPanelComponent],
   templateUrl: './site-detail.component.html',
 })
 export class SiteDetailComponent implements OnInit {

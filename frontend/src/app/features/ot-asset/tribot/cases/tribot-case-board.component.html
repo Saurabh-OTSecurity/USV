@@ -1,0 +1,71 @@
+<span class="mapnote">Tribot: Case Board (Incident Response) — GET /api/v1/ir-cases/board</span>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  @if (board(); as b) {
+  <div class="toprow">
+    <span class="stat">{{ b.totalOpen }} open case{{ b.totalOpen === 1 ? '' : 's' }}</span>
+    <button type="button" class="btn" (click)="reload()">Refresh</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+    @for (tier of tiers; track tier) {
+      <div class="kpi">
+        <div class="num">{{ tierCount(tier) }}</div>
+        <div class="lbl">Pending on {{ tier }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="board-columns">
+    @for (status of statuses; track status) {
+      <div class="board-column">
+        <div class="board-column-head">
+          <span class="pill" [class]="irStatusPillClass(status)">{{ irStatusLabel(status) }}</span>
+          <span class="stat">{{ columnCount(status) }}</span>
+        </div>
+        <div class="board-column-body">
+          @for (item of cardsFor(status); track item.caseId) {
+            <div class="case-card">
+              <div class="case-card-chips">
+                <span class="pill" [class]="severityPillClass(item.severity)">
+                  {{ item.severity || '—' }}
+                </span>
+                @if (item.pendingTier) {
+                  <span class="pill" [class]="irTierPillClass(item.pendingTier)">
+                    {{ item.pendingTier }}
+                  </span>
+                }
+              </div>
+              <div class="case-card-title">#{{ item.caseNumber }} {{ item.title }}</div>
+              <div class="case-card-meta">
+                {{ item.assetIp || item.assetName || 'No asset' }}
+                ·
+                {{ item.createdAt ? (item.createdAt | date: 'medium') : '—' }}
+              </div>
+            </div>
+          } @empty {
+            <p class="small-note" style="text-align: center;">
+              @if (status === 'Closed') {
+                Closed cases are not listed on the board
+              } @else {
+                Nothing here
+              }
+            </p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <p class="small-note">
+    Read-only. Case status changes go through Tribot's incident-response state machine, which
+    enforces per-transition tier minimums and records the remarks in its audit trail — so cases are
+    worked in Tribot, not here. Tasks, notes, observables, evidence and closure sign-off are not
+    exposed on Tribot's external API by design.
+  </p>
+  }
+}

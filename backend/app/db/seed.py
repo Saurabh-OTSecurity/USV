@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 
 from app.core.database import SessionLocal
-from app.models import AuditLog, Integration, Site, SyncState, Usv, UsvUser  # noqa: F401
+from app.models import AuditLog, BusinessUnit, Integration, Site, SyncState, Tenant, Usv, UsvUser  # noqa: F401
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -31,6 +31,24 @@ USERS = [
 def seed() -> None:
     session = SessionLocal()
     try:
+        # T-1: every Site needs a Business Unit. v006's migration already
+        # backfills a "Default Tenant" / "Default Business Unit" pair for an
+        # already-populated database; on a genuinely fresh database (schema
+        # created but v006 ran with zero sites, or tests that rebuild from
+        # scratch) that pair still exists from the migration, so reuse it
+        # rather than creating a second one here.
+        tenant = session.query(Tenant).first()
+        if tenant is None:
+            tenant = Tenant(name="Default Tenant", status="active")
+            session.add(tenant)
+            session.flush()
+
+        business_unit = session.query(BusinessUnit).filter_by(tenant_id=tenant.tenant_id).first()
+        if business_unit is None:
+            business_unit = BusinessUnit(tenant_id=tenant.tenant_id, name="Default Business Unit", status="active")
+            session.add(business_unit)
+            session.flush()
+
         site = session.query(Site).filter_by(site_code=SITE_CODE).one_or_none()
         if site is None:
             site = Site(
@@ -40,6 +58,7 @@ def seed() -> None:
                 timezone="UTC",
                 criticality="medium",
                 status="active",
+                business_unit_id=business_unit.business_unit_id,
             )
             session.add(site)
             session.flush()

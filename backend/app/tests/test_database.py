@@ -9,7 +9,7 @@ from app.db.seed import seed
 
 EXPECTED_COLUMNS = {
     "site": {
-        "site_id", "site_code", "name", "description", "timezone",
+        "site_id", "business_unit_id", "site_code", "name", "description", "timezone",
         "criticality", "status", "created_at", "updated_at",
     },
     "usv": {
@@ -28,7 +28,7 @@ EXPECTED_COLUMNS = {
         "last_error", "created_at", "updated_at",
     },
     "usv_user": {
-        "user_id", "site_id", "username", "password_hash", "role",
+        "user_id", "site_id", "business_unit_id", "username", "password_hash", "role",
         "display_name", "status", "last_login_at", "created_at", "updated_at",
     },
     "audit_log": {
@@ -65,12 +65,13 @@ def test_usv_site_id_unique_constraint_is_enforced():
     with engine.connect() as conn:
         trans = conn.begin()
         try:
+            business_unit_id = conn.execute(text("SELECT business_unit_id FROM business_unit LIMIT 1")).scalar()
             site_id = conn.execute(
                 text(
-                    "INSERT INTO site (site_code, name) VALUES (:code, :name) "
+                    "INSERT INTO site (site_code, name, business_unit_id) VALUES (:code, :name, :bu_id) "
                     "RETURNING site_id"
                 ),
-                {"code": site_code, "name": "Unique Constraint Test Site"},
+                {"code": site_code, "name": "Unique Constraint Test Site", "bu_id": business_unit_id},
             ).scalar()
 
             conn.execute(

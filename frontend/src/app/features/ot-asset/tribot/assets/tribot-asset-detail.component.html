@@ -1,0 +1,124 @@
+<a class="back-link" [routerLink]="ctx.link('assets')">&larr; Back to Asset Inventory</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+@if (asset(); as a) {
+  <h1>
+    {{ a.hostname || a.ip || a.assetId }}
+    @if (a.riskLevel) {
+      <span class="pill" [class]="riskLevelPillClass(a.riskLevel)" style="margin-left: 8px;">
+        {{ a.riskScore ?? '' }} {{ a.riskLevel }}
+      </span>
+    }
+  </h1>
+  <span class="mapnote">{{ a.ip || '—' }} &middot; {{ a.industrialZone || 'Unassigned zone' }} &middot; Tribot: Asset Risk Details</span>
+
+  <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="kpi"><div class="num">{{ a.riskScore ?? '—' }}</div><div class="lbl">Risk score</div></div>
+    <div class="kpi"><div class="num">{{ a.confidenceScore ?? '—' }}</div><div class="lbl">Identity confidence</div></div>
+    <div class="kpi"><div class="num">{{ a.cveCount }}</div><div class="lbl">CVEs</div></div>
+    <div class="kpi"><div class="num">{{ alerts().length }}</div><div class="lbl">Related alerts</div></div>
+  </div>
+
+  <div class="hz-tabs secondary">
+    <div class="hz-tab" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">Overview &amp; Identity</div>
+    <div class="hz-tab" [class.active]="activeTab() === 'vulnerabilities'" (click)="setTab('vulnerabilities')">
+      Vulnerabilities ({{ vulnerabilities().length }})
+    </div>
+    <div class="hz-tab" [class.active]="activeTab() === 'alerts'" (click)="setTab('alerts')">
+      Alerts ({{ alerts().length }})
+    </div>
+    <div class="hz-tab" [class.active]="activeTab() === 'software'" (click)="setTab('software')">
+      Software &amp; Patches
+    </div>
+  </div>
+
+  @if (activeTab() === 'overview') {
+    <div class="card">
+      <strong>Identity &amp; Hardware</strong>
+      <table style="margin-top: 8px;">
+        <!-- `vendor` is the network-observed identity; `manufacturer` is only
+             written by the WinRM/WMI ingest. On a MAC lookup they are the same
+             string, so the primary row is labelled Manufacturer and the WMI one
+             is qualified. -->
+        <tr><td>Manufacturer</td><td>{{ a.vendor || '—' }}</td></tr>
+        <tr><td>Manufacturer (WMI)</td><td>{{ a.manufacturer || '—' }}</td></tr>
+        <tr><td>Model</td><td>{{ a.modelNumber || '—' }}</td></tr>
+        <tr><td>Serial number</td><td>{{ a.serialNumber || '—' }}</td></tr>
+        <tr><td>Operating system</td><td>{{ a.operatingSystem || '—' }}</td></tr>
+        <tr><td>Firmware version</td><td>{{ a.firmwareVersion || '—' }}</td></tr>
+        <tr><td>Primary domain</td><td>{{ a.primaryDomain || '—' }}</td></tr>
+        <tr><td>Domain confidence</td><td>{{ a.domainConfidence ?? '—' }}</td></tr>
+        <tr><td>Protocols</td><td>{{ a.protocols.join(', ') || '—' }}</td></tr>
+        <tr><td>MAC</td><td>{{ a.mac || '—' }}</td></tr>
+        <tr><td>First seen</td><td>{{ a.firstSeen ? (a.firstSeen | date: 'medium') : '—' }}</td></tr>
+        <tr><td>Last seen</td><td>{{ a.lastSeen ? (a.lastSeen | date: 'medium') : '—' }}</td></tr>
+      </table>
+    </div>
+    @if (a.eolStatus) {
+      <div class="card">
+        <strong>End-of-life status</strong>
+        <table style="margin-top: 8px;">
+          <tr><td>Support status</td><td>{{ a.eolStatus.supportStatus || '—' }}</td></tr>
+          <tr><td>End-of-life date</td><td>{{ a.eolStatus.eolDate || '—' }}</td></tr>
+          <tr><td>End-of-support date</td><td>{{ a.eolStatus.eosDate || '—' }}</td></tr>
+        </table>
+      </div>
+    }
+  }
+
+  @if (activeTab() === 'vulnerabilities') {
+    <div class="card table-wrapper" style="padding: 0;">
+      <table>
+        <thead>
+          <tr><th>CVE</th><th>Title</th><th>Severity</th><th>CVSS</th><th>Exploit</th><th>CISA KEV</th></tr>
+        </thead>
+        <tbody>
+          @for (v of vulnerabilities(); track v.vulnerabilityId) {
+            <tr>
+              <td>{{ v.cveId || '—' }}</td>
+              <td>{{ v.title || '—' }}</td>
+              <td><span class="pill" [class]="severityPillClass(v.severity)">{{ v.severity || '—' }}</span></td>
+              <td>{{ v.cvssScore ?? '—' }}</td>
+              <td>{{ v.hasExploit ? 'Yes' : 'No' }}</td>
+              <td>{{ v.cisaKev ? 'Yes' : 'No' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No vulnerabilities reported by Tribot for this asset.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (activeTab() === 'alerts') {
+    <div class="card table-wrapper" style="padding: 0;">
+      <table>
+        <thead>
+          <tr><th>Time</th><th>Title</th><th>Severity</th><th>Category</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          @for (alert of alerts(); track alert.alertId) {
+            <tr class="clickable" [routerLink]="ctx.link('alerts', alert.alertId)">
+              <td>{{ alert.createdAt ? (alert.createdAt | date: 'medium') : '—' }}</td>
+              <td>{{ alert.title || '—' }}</td>
+              <td><span class="pill" [class]="severityPillClass(alert.severity)">{{ alert.severity || '—' }}</span></td>
+              <td>{{ alert.category || '—' }}</td>
+              <td>{{ alert.status || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5">No alerts reported by Tribot for this asset.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (activeTab() === 'software') {
+    <app-tribot-asset-software [assetId]="a.assetId" [asset]="a" />
+  }
+}
+}

@@ -15,6 +15,8 @@
             <th>Display name</th>
             <th>Role</th>
             <th>Site ID</th>
+            <th>Status</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -24,6 +26,14 @@
               <td>{{ user.display_name || '—' }}</td>
               <td>{{ user.role }}</td>
               <td>{{ user.site_id || '—' }}</td>
+              <td>{{ user.status || 'active' }}@if (user.locked) { <span class="pill pill-red">locked</span> }@if (user.must_change_password) { <span class="pill pill-amber">must change password</span> }</td>
+              <td>
+                @if (user.locked) { <button class="btn" type="button" (click)="unlock(user)">Unlock</button> }
+                @if (user.status === 'disabled') { <button class="btn" type="button" (click)="setEnabled(user, true)">Enable</button> }
+                @else { <button class="btn" type="button" (click)="setEnabled(user, false)">Disable</button> }
+                <button class="btn" type="button" (click)="changeRole(user)">Role</button>
+                <button class="btn" type="button" (click)="oneTimePassword(user)">One-time password link</button>
+              </td>
             </tr>
           }
         </tbody>
@@ -31,6 +41,14 @@
     </div>
   }
 </section>
+
+@if (shareLink(); as s) {
+  <div class="card">
+    <p>One-time link for <strong>{{ s.username }}</strong> (expires {{ s.expires_at }}). Send it through a separate channel; it opens once and they must set their own password.</p>
+    <p class="mono token-box">{{ s.url }}</p>
+    <button class="btn" type="button" (click)="shareLink.set(null)">Done</button>
+  </div>
+}
 
 <section class="section">
   <h2>Create user</h2>
@@ -53,6 +71,9 @@
 
     <label for="site_id">Site ID (optional)</label>
     <input id="site_id" type="text" formControlName="site_id" />
+
+    <label for="business_unit_id">Business unit ID (optional, for BU admins)</label>
+    <input id="business_unit_id" type="text" formControlName="business_unit_id" />
 
     @if (formError()) {
       <p class="error-text" role="alert">{{ formError() }}</p>

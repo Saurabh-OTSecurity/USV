@@ -11,6 +11,10 @@ export interface CurrentUser {
   role: string;
   display_name: string | null;
   site_id: string | null;
+  business_unit_id?: string | null;
+  must_change_password?: boolean;
+  locked?: boolean;
+  status?: string;
 }
 
 interface LoginResponse {
@@ -39,9 +43,11 @@ export class AuthService {
     return sessionStorage.getItem(TOKEN_KEY);
   }
 
-  login(username: string, password: string): Observable<CurrentUser> {
+  login(username: string, password: string, tenantCode: string | null = null): Observable<CurrentUser> {
+    // tenant_code: which customer's database to sign in to, when USV hosts one
+    // database per customer; ignored by a single-customer USV.
     return this.http
-      .post<LoginResponse>(`${API_BASE_URL}/api/v1/auth/login`, { username, password })
+      .post<LoginResponse>(`${API_BASE_URL}/api/v1/auth/login`, { username, password, ...(tenantCode ? { tenant_code: tenantCode } : {}) })
       .pipe(
         tap((response) => this.storeSession(response.token, response.user)),
         map((response) => response.user)

@@ -24,6 +24,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         authService.clearSession();
         router.navigate(['/login']);
+      } else if (error.status === 403 && error.error?.error?.code === 'PASSWORD_CHANGE_REQUIRED') {
+        // issued or reset password: nothing else works until it is changed
+        router.navigate(['/change-password']);
       }
       return throwError(() => error);
     })

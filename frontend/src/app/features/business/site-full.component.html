@@ -1,0 +1,34 @@
+<a class="back-link" routerLink="/business">← Business view</a>
+
+<div class="head">
+  <h1>{{ summary()?.site_code ?? '…' }} <span class="muted">{{ summary()?.name }}</span></h1>
+  <div class="actions">
+    <a class="btn" [routerLink]="['/site', siteId()]">Site settings</a>
+    <button class="btn btn-primary" type="button" (click)="openInTribot()">Open in Tribot</button>
+  </div>
+</div>
+@if (error()) { <p class="error-text">{{ error() }}</p> }
+
+@if (summary(); as s) {
+  <div class="kpi-grid">
+    <div class="kpi"><span class="num">{{ s.assets }}</span><span class="lbl">assets</span></div>
+    <div class="kpi"><span class="num">{{ s.silent_assets }}</span><span class="lbl">silent</span></div>
+    <div class="kpi"><span class="num">{{ s.missing_assets }}</span><span class="lbl">missing from Tribot</span></div>
+    <div class="kpi"><span class="num">{{ s.state }}</span><span class="lbl">connection</span></div>
+  </div>
+}
+<span class="mapnote">Data this site's Tribot pushed to USV, shown the way Tribot shows it.</span>
+
+<div class="hz-tabs secondary" style="margin-top: 8px;">
+  <a class="hz-tab" routerLink="assets" routerLinkActive="active">Discovery</a>
+  <a class="hz-tab" routerLink="topology" routerLinkActive="active">Topology</a>
+  <a class="hz-tab" routerLink="alerts" routerLinkActive="active">Detection &amp; Response</a>
+  <a class="hz-tab" routerLink="vulnerabilities" routerLinkActive="active">Risk &amp; Compliance</a>
+  <a class="hz-tab" routerLink="cases" routerLinkActive="active">Case Board</a>
+  <a class="hz-tab" routerLink="lifecycle" routerLinkActive="active">Lifecycle</a>
+</div>
+
+<!-- one pass per site id: moving to another site rebuilds the tab pages -->
+@for (id of [siteId()]; track id) {
+  <router-outlet></router-outlet>
+}

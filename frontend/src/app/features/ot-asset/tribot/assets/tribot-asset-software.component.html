@@ -1,0 +1,101 @@
+<span class="mapnote">
+  Tribot: Software &amp; Patches — GET /api/v1/assets/{{ assetId }}/software and /patches
+</span>
+
+<div class="toprow">
+  <span class="pill pill-neutral">{{ collectionMethodLabel }}</span>
+  <span class="stat">
+    Last collected: {{ collectedAt ? (collectedAt | date: 'medium') : 'never' }}
+  </span>
+</div>
+
+@if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else if (loading()) {
+  <p>Loading…</p>
+} @else {
+  <div class="card">
+    <div class="toprow">
+      <strong>Installed Applications ({{ softwareTotal() }})</strong>
+      <input
+        [(ngModel)]="softwareSearch"
+        (change)="loadSoftware()"
+        placeholder="Filter applications…"
+      />
+    </div>
+    <div class="table-wrapper" style="padding: 0;">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" (click)="toggleSoftwareSort('displayName')">Name</th>
+            <th class="sortable" (click)="toggleSoftwareSort('displayVersion')">Version</th>
+            <th class="sortable" (click)="toggleSoftwareSort('publisher')">Publisher</th>
+            <th class="sortable" (click)="toggleSoftwareSort('installDate')">Installed</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of software(); track item.softwareId) {
+            <tr>
+              <td>{{ item.displayName || '—' }}</td>
+              <td>{{ item.displayVersion || '—' }}</td>
+              <td>{{ item.publisher || '—' }}</td>
+              <td>{{ item.installDate || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">
+                @if (softwareSearch) {
+                  No applications match that filter.
+                } @else {
+                  No software has been collected from this asset yet.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toprow">
+      <strong>Installed Hotfixes ({{ patchTotal() }})</strong>
+      <input [(ngModel)]="patchSearch" (change)="loadPatches()" placeholder="Filter hotfixes…" />
+    </div>
+    <div class="table-wrapper" style="padding: 0;">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" (click)="togglePatchSort('hotfixId')">Hotfix</th>
+            <th class="sortable" (click)="togglePatchSort('description')">Description</th>
+            <th class="sortable" (click)="togglePatchSort('installedOn')">Installed on</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of patches(); track item.patchId) {
+            <tr>
+              <td>{{ item.hotfixId || '—' }}</td>
+              <td>{{ item.description || '—' }}</td>
+              <td>{{ item.installedOn || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">
+                @if (patchSearch) {
+                  No hotfixes match that filter.
+                } @else {
+                  No patches have been collected from this asset yet.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="small-note">
+    Collection runs are started in Tribot. Its “run now” action takes one-time Windows credentials
+    on an admin-only endpoint, which is not exposed on the external API.
+  </p>
+}

@@ -1,27 +1,50 @@
 <div class="shell">
-  <header class="shell-header">
-    <div class="brand">Tribastion Site USV</div>
-    <div class="identity">
+  <header class="topbar">
+    <div class="brand"><span class="mark"></span>Tribastion <span class="brand-sub">Site USV</span></div>
+    <div class="top-right">
       @if (currentUser(); as user) {
         <span class="display-name">{{ user.display_name || user.username }}</span>
         <span class="role">{{ user.role }}</span>
       }
-      <button type="button" class="logout" (click)="logout()">Log out</button>
+      <button type="button" class="btn logout" (click)="logout()">Log out</button>
     </div>
   </header>
 
   <div class="shell-body">
-    <nav class="shell-nav">
-      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/site" routerLinkActive="active">Site</a>
-      <a routerLink="/usv" routerLinkActive="active">USV</a>
-      <a routerLink="/integrations" routerLinkActive="active">Integrations</a>
-      @if (isPlatformAdmin) {
-        <a routerLink="/users" routerLinkActive="active">Users</a>
+    <nav class="sidebar">
+      <div class="nav-head">Platform</div>
+      <a class="nav-top" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a class="nav-top" routerLink="/site" routerLinkActive="active">Site</a>
+      <a class="nav-top" routerLink="/health" routerLinkActive="active">Platform health</a>
+
+      <div class="nav-head">Business</div>
+      <a class="nav-top" routerLink="/business" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">Business view</a>
+      <a class="nav-top" routerLink="/fleet" routerLinkActive="active">Alerts, incidents, assets</a>
+      <a class="nav-top" routerLink="/usv" routerLinkActive="active">USV</a>
+      <a class="nav-top" routerLink="/integrations" routerLinkActive="active">Integrations</a>
+
+      <div class="nav-head">OT Asset</div>
+      <a
+        class="nav-top"
+        routerLink="/ot-asset/tribot"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        Tribot
+      </a>
+
+      <div class="nav-head">Admin</div>
+      <a class="nav-top" routerLink="/approvals" routerLinkActive="active">Approvals</a>
+      @if (isPlatformAdmin || isCustomerAdmin) {
+        <a class="nav-top" routerLink="/users" routerLinkActive="active">Users</a>
       }
+      @if (isPlatformAdmin) {
+        <a class="nav-top" routerLink="/customers" routerLinkActive="active">Customers</a>
+      }
+      <a class="nav-top" routerLink="/change-password" routerLinkActive="active">Change password</a>
     </nav>
 
-    <main class="shell-content">
+    <main class="main">
       <router-outlet></router-outlet>
     </main>
   </div>

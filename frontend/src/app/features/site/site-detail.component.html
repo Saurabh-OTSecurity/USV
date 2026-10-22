@@ -23,5 +23,7 @@
       <dt>Status</dt>
       <dd><app-status-badge [status]="site.status"></app-status-badge></dd>
     </dl>
+    <p><a class="btn" [routerLink]="['/business/site', site.site_id]">Topology, assets and alerts</a></p>
+    <app-site-admin-panel [site]="site"></app-site-admin-panel>
   }
 }

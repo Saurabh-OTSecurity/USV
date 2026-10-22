@@ -32,6 +32,7 @@ describe('UsersComponent', () => {
       role: 'usv_viewer',
       display_name: 'New User',
       site_id: '',
+      business_unit_id: '',
     });
     component.submit();
 
@@ -65,6 +66,7 @@ describe('UsersComponent', () => {
       role: 'not_a_real_role',
       display_name: '',
       site_id: '',
+      business_unit_id: '',
     });
     component.submit();
 

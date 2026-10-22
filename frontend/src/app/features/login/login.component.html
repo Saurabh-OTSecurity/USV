@@ -1,6 +1,7 @@
 <div class="login-page">
   <form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
-    <h1>Tribastion Site USV</h1>
+    <div class="brand-mark"><span></span><strong>Tribastion</strong></div>
+    <h1>Site USV</h1>
     <p class="subtitle">Sign in to continue</p>
 
     <label for="username">Username</label>
@@ -9,6 +10,12 @@
     <label for="password">Password</label>
     <input id="password" type="password" formControlName="password" autocomplete="current-password" />
 
+    <details class="customer-code">
+      <summary>Signing in to a customer?</summary>
+      <label for="tenantCode">Customer code</label>
+      <input id="tenantCode" type="text" formControlName="tenantCode" />
+    </details>
+
     @if (errorMessage()) {
       <p class="error" role="alert">{{ errorMessage() }}</p>
     }
@@ -16,5 +23,6 @@
     <button type="submit" [disabled]="form.invalid || submitting()">
       {{ submitting() ? 'Signing in…' : 'Sign in' }}
     </button>
+    <p class="forgot"><a routerLink="/forgot-password">Forgot password?</a></p>
   </form>
 </div>

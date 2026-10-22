@@ -14,3 +14,12 @@ class SiteRepository:
 
     def get_by_id(self, site_id: uuid.UUID) -> Site | None:
         return self.db.get(Site, site_id)
+
+    def get_by_code(self, site_code: str) -> Site | None:
+        return self.db.query(Site).filter_by(site_code=site_code).one_or_none()
+
+    def create(self, site: Site) -> Site:
+        self.db.add(site)
+        self.db.commit()
+        self.db.refresh(site)
+        return site

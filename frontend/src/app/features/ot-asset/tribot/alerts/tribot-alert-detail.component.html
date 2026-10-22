@@ -1,0 +1,76 @@
+<a class="back-link" [routerLink]="ctx.link('alerts')">&larr; Back to Alerts</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+@if (alert(); as a) {
+  <h1>
+    {{ a.title || a.alertId }}
+    @if (a.severity) {
+      <span class="pill" [class]="severityPillClass(a.severity)" style="margin-left: 8px;">{{ a.severity }}</span>
+    }
+  </h1>
+  <span class="mapnote">{{ a.createdAt ? (a.createdAt | date: 'medium') : '—' }} &middot; Tribot: Behavioral Alert</span>
+
+  <div class="card">
+    <dl class="detail-fields">
+      <dt>Status</dt>
+      <dd><span class="pill" [class]="alertStatusPillClass(a.status)">{{ a.status || '—' }}</span></dd>
+      <dt>Acknowledged</dt>
+      <dd>{{ a.acknowledged ? 'Yes' : 'No' }}</dd>
+      <dt>Category</dt>
+      <dd>{{ a.category || '—' }}</dd>
+      <dt>Rule / Type</dt>
+      <dd>{{ a.ruleId || '—' }} / {{ a.typeId || '—' }}</dd>
+      <dt>Asset</dt>
+      <dd>
+        @if (a.assetId) {
+          <a [routerLink]="ctx.link('assets', a.assetId)">{{ a.assetName || a.assetIp || a.assetId }}</a>
+        } @else {
+          —
+        }
+      </dd>
+      <dt>Source / Destination</dt>
+      <dd>{{ a.source || '—' }} &rarr; {{ a.destination || '—' }}</dd>
+      <dt>Protocol</dt>
+      <dd>{{ a.protocol || '—' }}</dd>
+      <dt>Purdue level</dt>
+      <dd>{{ a.purdueLevel || '—' }}</dd>
+      <dt>MITRE ATT&amp;CK</dt>
+      <dd>
+        @if (a.mitreTechniqueId) {
+          {{ a.mitreTechniqueId }} — {{ a.mitreTechniqueName || '—' }} ({{ a.mitreTactic || '—' }})
+        } @else {
+          —
+        }
+      </dd>
+      <dt>Compliance references</dt>
+      <dd>
+        @if (a.complianceRefs) {
+          IEC 62443: {{ a.complianceRefs.iec62443Ref || '—' }} &middot; NIST 800-82: {{ a.complianceRefs.nist80082Ref || '—' }}
+        } @else {
+          —
+        }
+      </dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <strong>Description</strong>
+    <p>{{ a.description || 'No description provided.' }}</p>
+    @if (a.recommendation) {
+      <strong>Recommendation</strong>
+      <p>{{ a.recommendation }}</p>
+    }
+  </div>
+
+  @if (a.evidence) {
+    <div class="card">
+      <strong>Evidence</strong>
+      <div class="evidence-block">{{ a.evidence | json }}</div>
+    </div>
+  }
+}
+}

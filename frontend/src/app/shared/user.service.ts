@@ -13,6 +13,7 @@ export interface UserCreateRequest {
   role: string;
   display_name: string | null;
   site_id: string | null;
+  business_unit_id?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

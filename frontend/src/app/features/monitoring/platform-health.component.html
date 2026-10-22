@@ -1,0 +1,85 @@
+<h1>Platform health</h1>
+
+@if (health(); as h) {
+  <div class="kpi-grid">
+    @for (s of states; track s) {
+      <button type="button" class="kpi" [class.active]="stateFilter() === s" (click)="stateFilter.set(stateFilter() === s ? null : s)">
+        <span class="num">{{ h.site_counts[s] || 0 }}</span><span class="lbl">{{ s.replaceAll('_', ' ') }}</span>
+      </button>
+    }
+  </div>
+
+  @if (h.ingestion) {
+    <div class="grid">
+      <div class="card"><h3>Ingestion</h3>
+        <p>{{ h.ingestion.pending }} pending · delay {{ h.ingestion.delay_seconds }} s</p></div>
+      <div class="card"><h3>Database</h3>
+        <p>@if (h.database?.ok) { <span class="pill pill-green">up</span> {{ h.database?.latency_ms }} ms } @else { <span class="pill pill-red">down</span> {{ h.database?.error }} }</p>
+        <p>Disk: @if (h.database_disk?.configured) { {{ h.database_disk?.free_percent }}% free } @else { not configured }</p></div>
+      <div class="card"><h3>Certificate</h3>
+        <p>@if (h.certificate?.configured) { expires in {{ h.certificate?.days_left }} days {{ h.certificate?.error || '' }} } @else { not configured }</p></div>
+      <div class="card"><h3>Backup</h3>
+        <p>@if (h.backup?.configured) { last {{ h.backup?.age_hours ?? '—' }} h ago } @else { not configured }</p></div>
+      <div class="card"><h3>API</h3>
+        <p>{{ h.api?.error_percent }}% errors in 10 min ({{ h.api?.requests }} requests)</p></div>
+    </div>
+  }
+
+  <section class="section">
+    <h2>Sites {{ stateFilter() ? '— ' + stateFilter() : '' }}</h2>
+    <table class="data-table">
+      <thead><tr><th>Site</th><th>State</th><th>Since</th><th>Last contact</th></tr></thead>
+      <tbody>
+        @for (s of sites(); track s.site_id) {
+          <tr>
+            <td><a [routerLink]="['/business/site', s.site_id]">{{ s.site_code }}</a> {{ s.name }}</td>
+            <td>
+              @switch (s.state) {
+                @case ('healthy') { <span class="pill pill-green">healthy</span> }
+                @case ('silent') { <span class="pill pill-amber">silent</span> }
+                @case ('disconnected') { <span class="pill pill-red">disconnected</span> }
+                @default { <span class="pill pill-neutral">waiting for first data</span> }
+              }
+            </td>
+            <td>{{ s.state_since ? (s.state_since | date: 'short') : '—' }}</td>
+            <td>{{ s.last_contact_at ? (s.last_contact_at | date: 'short') : 'never' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}
+
+@if (notifications().length) {
+  <section class="section">
+    <h2>My notifications</h2>
+    <ul>
+      @for (n of notifications(); track n.notification_id) {
+        <li>{{ n.created_at | date: 'short' }} — {{ n.title }} <span class="small-note">({{ n.level }})</span>
+          <button class="btn" type="button" (click)="markRead(n)">Mark read</button></li>
+      }
+    </ul>
+  </section>
+}
+
+<section class="section">
+  <h2>USV alerts</h2>
+  <label class="small-note"><input type="checkbox" [checked]="showEvents()" (change)="toggleEvents()" /> Include closed alerts and events</label>
+  @if (error()) { <p class="error-text">{{ error() }}</p> }
+  <table class="data-table">
+    <thead><tr><th>Rule</th><th>Severity</th><th>Title</th><th>Site</th><th>Status</th><th>Last seen</th><th></th></tr></thead>
+    <tbody>
+      @for (a of alerts(); track a.usv_alert_id) {
+        <tr>
+          <td class="mono">{{ a.rule_id }}</td>
+          <td><span [class]="severityClass(a.severity)">{{ a.severity }}</span></td>
+          <td>{{ a.title }} @if (a.occurrence_count > 1) { <span class="small-note">×{{ a.occurrence_count }}</span> }</td>
+          <td>{{ siteCode(a.site_id) || (a.site_id ? '…' : 'platform') }}</td>
+          <td>{{ a.event_only ? 'event' : a.status }}</td>
+          <td>{{ a.last_seen_at | date: 'short' }}</td>
+          <td>@if (a.status === 'open' && !a.event_only) { <button class="btn" type="button" (click)="acknowledge(a)">Acknowledge</button> }</td>
+        </tr>
+      } @empty { <tr><td colspan="7">No open USV alerts.</td></tr> }
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,66 @@
+<a class="back-link" routerLink="/site">← Sites</a>
+<h1>Add site</h1>
+
+<ol class="hz-tabs">
+  <li class="hz-tab" [class.active]="step() === 1">1 · Business and site</li>
+  <li class="hz-tab" [class.active]="step() === 2">2 · Ingestion token</li>
+  <li class="hz-tab" [class.active]="step() === 3">3 · Waiting for first data</li>
+</ol>
+
+@if (step() === 1) {
+  <form class="form-card" [formGroup]="form" (ngSubmit)="create()">
+    <label>Business unit
+      <select formControlName="business_unit_id">
+        <option value="">— add a new business unit —</option>
+        @for (u of units(); track u.business_unit_id) {
+          <option [value]="u.business_unit_id">{{ u.name }}</option>
+        }
+      </select>
+    </label>
+    @if (!form.controls.business_unit_id.value) {
+      <label>New business unit name <input formControlName="new_business_unit" placeholder="e.g. Transmission" /></label>
+    }
+    <label>Site code <input formControlName="site_code" placeholder="PWR-01" /></label>
+    <p class="small-note">Area code plus number. Unique, and it never changes.</p>
+    <label>Site name <input formControlName="name" placeholder="Power Site 1" /></label>
+    <label>Criticality
+      <select formControlName="criticality">
+        <option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+    </label>
+    <label>Time zone <input formControlName="timezone" /></label>
+    <label>Tribot address (optional) <input formControlName="tribot_url" placeholder="https://tribot.site.example" /></label>
+    <p class="small-note">Where people open this site's Tribot; used for single sign-on from USV.</p>
+    @if (error()) { <p class="error-text">{{ error() }}</p> }
+    <button class="btn btn-primary" type="submit" [disabled]="busy()">{{ busy() ? 'Creating…' : 'Create site and token' }}</button>
+  </form>
+}
+
+@if (step() === 2 && site(); as s) {
+  <div class="card">
+    <div class="notice"><strong>Copy this token now.</strong> USV shows it once and cannot show it again.</div>
+    <p class="mono token-box">{{ token() }}</p>
+    <button class="btn" type="button" (click)="copyToken()">{{ copied() ? 'Copied' : 'Copy token' }}</button>
+
+    <h3>Give the site admin these details for the Tribot's USV destination</h3>
+    <table class="data-table">
+      <tr><th>USV address</th><td class="mono">{{ usvAddress }}</td></tr>
+      <tr><th>Site code</th><td class="mono">{{ s.site_code }}</td></tr>
+      <tr><th>Ingestion token</th><td>the token above</td></tr>
+    </table>
+    <p class="small-note">On the Tribot: add the destination disabled, press Test (it must succeed), enable it, press Send now.</p>
+    <button class="btn btn-primary" type="button" (click)="tokenSaved()">I've stored the token</button>
+  </div>
+}
+
+@if (step() === 3 && site(); as s) {
+  <div class="card">
+    @if (firstData()) {
+      <p class="success-text"><span class="pill pill-green">Onboarded</span> {{ s.site_code }} sent its first data: {{ assetCount() }} assets.</p>
+      <a class="btn btn-primary" [routerLink]="['/site', s.site_id]">Open {{ s.site_code }}</a>
+    } @else {
+      <p><span class="pill pill-amber">Waiting</span> No data from {{ s.site_code }} yet. This page checks every 10 seconds.</p>
+      <p class="small-note">Nothing after a successful Test usually means the destination is still disabled or Send now wasn't pressed. A 401 on the Tribot means a wrong token.</p>
+    }
+  </div>
+}

@@ -8,7 +8,15 @@ from app.core.database import Base
 from app.models import *  # noqa: F401,F403  (registers models on Base.metadata)
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Respect a URL already set on the Config object (e.g. a programmatic
+# invocation targeting a specific tenant database -- see
+# app/services/tenant_provisioning_service.py's _run_migrations, which sets
+# this before calling alembic.command.upgrade). Only fall back to the
+# default configured database when nothing more specific was provided --
+# the normal case for a plain `alembic upgrade head` from the CLI, where
+# alembic.ini's sqlalchemy.url is intentionally left blank.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

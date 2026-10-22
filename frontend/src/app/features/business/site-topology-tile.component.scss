@@ -1,0 +1,30 @@
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  min-height: 330px;
+  display: flex;
+  flex-direction: column;
+
+  &:hover, &:focus { border-color: var(--accent); outline: none; }
+  &.stale { opacity: 0.6; filter: grayscale(0.6); }
+}
+
+.tile-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+.counts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; }
+.muted { color: var(--text-muted); }
+.small { font-size: 12px; }
+.empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+
+.topo {
+  width: 100%;
+  height: auto;
+  line { stroke: var(--border); stroke-width: 1.2; }
+  line.dim { opacity: 0.25; }
+  circle { fill: var(--teal); stroke: var(--surface); stroke-width: 1.5; }
+  .silent circle { fill: none; stroke: var(--text-muted); stroke-dasharray: 3 2; }
+  .missing circle { fill: var(--amber); }
+  .dim { opacity: 0.25; }
+}

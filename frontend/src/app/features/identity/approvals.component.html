@@ -1,0 +1,50 @@
+<h1>Approvals</h1>
+@if (message()) { <p class="success-text">{{ message() }}</p> }
+@if (error()) { <p class="error-text">{{ error() }}</p> }
+
+<section class="section">
+  <h2>Password resets waiting for me</h2>
+  <p class="small-note">Approve only after confirming, through a separate channel, that the person really asked. The reset link goes to them, never to you.</p>
+  <table class="data-table">
+    <thead><tr><th>Person</th><th>Role</th><th>Site</th><th>Asked</th><th>From</th><th>Approvals</th><th></th></tr></thead>
+    <tbody>
+      @for (r of resets(); track r.request_id) {
+        <tr>
+          <td>{{ r.username }} @if (r.escalated) { <span class="pill pill-amber">escalated</span> }</td>
+          <td>{{ r.role }}</td><td>{{ r.site_id ? selection.siteName(r.site_id) : '—' }}</td>
+          <td>{{ r.requested_at | date: 'short' }}</td><td class="mono">{{ r.source_ip || '—' }}</td>
+          <td>{{ r.approvals }} / {{ r.required_approvals }}</td>
+          <td><button class="btn btn-primary" type="button" (click)="decide(r, 'approve')">Approve</button>
+              <button class="btn" type="button" (click)="decide(r, 'reject')">Reject</button></td>
+        </tr>
+      } @empty { <tr><td colspan="7">Nothing waiting.</td></tr> }
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2>Break-glass requests</h2>
+  <p class="small-note">Needs one customer-side and one Tribastion approval. The requester then sees the password once; it is rotated 24 hours later.</p>
+  @if (revealed(); as r) {
+    <div class="card">
+      <p>Break-glass account <span class="mono">{{ r.username }}</span></p>
+      <p class="mono token-box">{{ r.password }}</p>
+      <p class="notice">Shown once. Rotated at {{ r.rotates_at | date: 'short' }}. This opening was raised as a critical alert.</p>
+    </div>
+  }
+  <table class="data-table">
+    <thead><tr><th>Site</th><th>Reason</th><th>Status</th><th>Approvals</th><th>Asked</th><th></th></tr></thead>
+    <tbody>
+      @for (b of breakGlass(); track b.request_id) {
+        <tr>
+          <td>{{ selection.siteName(b.site_id) }}</td><td>{{ b.reason }}</td><td>{{ b.status }}</td>
+          <td>{{ sides(b) }}</td><td>{{ b.created_at | date: 'short' }}</td>
+          <td>
+            @if (b.status === 'pending') { <button class="btn" type="button" (click)="approveBreakGlass(b)">Approve</button> }
+            @if (b.status === 'approved') { <button class="btn btn-primary" type="button" (click)="openBreakGlass(b)">Open (requester only)</button> }
+          </td>
+        </tr>
+      } @empty { <tr><td colspan="6">No break-glass requests.</td></tr> }
+    </tbody>
+  </table>
+</section>

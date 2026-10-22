@@ -1,0 +1,54 @@
+<h1>Business view</h1>
+
+<div class="biz">
+  <aside class="site-list card">
+    <label>Business
+      <select [ngModel]="selection.businessUnitId()" (ngModelChange)="selection.chooseBusiness($event)">
+        @for (u of selection.businessUnits(); track u.business_unit_id) {
+          <option [value]="u.business_unit_id">{{ u.name }}</option>
+        }
+      </select>
+    </label>
+    <div class="list-actions">
+      <button class="btn" type="button" (click)="selection.selectAll()">Select all</button>
+      <button class="btn" type="button" (click)="selection.clearAll()">Clear all</button>
+    </div>
+    <p class="small-note">{{ selection.tickedSites().length }} of {{ selection.sitesInBusiness().length }} sites</p>
+    <ul>
+      @for (s of selection.sitesInBusiness(); track s.site_id) {
+        <li>
+          <label class="check">
+            <input type="checkbox" [checked]="selection.ticked().has(s.site_id)" (change)="selection.toggle(s.site_id)" />
+            {{ s.site_code }} <span class="muted">{{ s.name }}</span>
+            @if (stateOf(s.site_id) === 'silent' || stateOf(s.site_id) === 'disconnected') {
+              <span class="pill pill-red">{{ stateOf(s.site_id) }}</span>
+            }
+          </label>
+        </li>
+      }
+    </ul>
+  </aside>
+
+  <section class="tiles-area">
+    <div class="filter-row">
+      <label>Severity
+        <select [ngModel]="filters().severity" (ngModelChange)="setFilter({ severity: $event })">
+          <option value="">Any</option><option value="critical">Critical</option><option value="high">High</option>
+          <option value="medium">Medium</option><option value="low">Low</option>
+        </select>
+      </label>
+      <label>Asset type <input [ngModel]="filters().assetType" (ngModelChange)="setFilter({ assetType: $event })" placeholder="e.g. PLC" /></label>
+      <label>Zone <input [ngModel]="filters().zone" (ngModelChange)="setFilter({ zone: $event })" placeholder="e.g. Cell/Area Zone" /></label>
+      <label class="check"><input type="checkbox" [ngModel]="filters().onlyWithAlerts" (ngModelChange)="setFilter({ onlyWithAlerts: $event })" /> Only sites with open alerts</label>
+    </div>
+
+    @if (tiles().length === 0) {
+      <p class="placeholder">Tick sites on the left to show their topology.</p>
+    }
+    <div class="tile-grid">
+      @for (t of tiles(); track t.site_id) {
+        <app-site-topology-tile [summary]="t" [filters]="filters()" (open)="openSite($event)"></app-site-topology-tile>
+      }
+    </div>
+  </section>
+</div>

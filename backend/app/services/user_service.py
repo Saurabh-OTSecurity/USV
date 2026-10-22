@@ -30,6 +30,7 @@ class UserService:
         display_name: str | None,
         site_id: uuid.UUID | None,
         actor_user_id: uuid.UUID,
+        business_unit_id: uuid.UUID | None = None,
     ) -> UsvUser:
         user = UsvUser(
             username=username,
@@ -37,12 +38,17 @@ class UserService:
             role=role,
             display_name=display_name,
             site_id=site_id,
+            business_unit_id=business_unit_id,
         )
         try:
             user = self.repository.create(user)
-        except IntegrityError:
+        except IntegrityError as exc:
             self.repository.db.rollback()
-            raise UsernameAlreadyExistsError() from None
+            # only a duplicate username is a 409; any other constraint failure
+            # is a real error and must not be reported as "username in use"
+            if getattr(exc.orig, "pgcode", None) == "23505":  # unique_violation
+                raise UsernameAlreadyExistsError() from None
+            raise
 
         self.audit.record(
             event_type="user_created",

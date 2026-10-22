@@ -1,0 +1,159 @@
+<span class="mapnote">Tribot: Asset Inventory — GET /api/v1/assets</span>
+
+<div class="filter-row">
+  <div>
+    <label for="asset-search">Search</label>
+    <input
+      id="asset-search"
+      [(ngModel)]="search"
+      (change)="reload()"
+      placeholder="IP, MAC, hostname, manufacturer, model, OS…"
+      style="min-width: 260px;"
+    />
+  </div>
+
+  <!-- Pick a column, then narrow it. Both the field list and the value list
+       come from Tribot, so the picker can never offer something it rejects. -->
+  <div>
+    <label for="filter-field">Filter column</label>
+    <select id="filter-field" [(ngModel)]="filterBy" (change)="onFilterFieldChange()">
+      <option value="">None</option>
+      @for (col of filterableColumns(); track col.key) {
+        <option [value]="col.filterField">{{ col.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (filterBy) {
+    <div>
+      <label for="filter-value">Value</label>
+      <input
+        id="filter-value"
+        [(ngModel)]="filterValue"
+        (change)="reload()"
+        list="facet-values"
+        [placeholder]="facetLoading() ? 'Loading values…' : 'Type to filter, or pick a value'"
+        style="min-width: 220px;"
+      />
+      <datalist id="facet-values">
+        @for (v of facetValues(); track v.value) {
+          <option [value]="v.value">{{ v.value }} ({{ v.count }})</option>
+        }
+      </datalist>
+    </div>
+  }
+
+  <div>
+    <button type="button" class="btn" (click)="reload()">Apply</button>
+    <button type="button" class="btn" (click)="clearFilters()">Clear</button>
+    <button type="button" class="btn" (click)="togglePalette()">
+      {{ paletteOpen() ? 'Done' : 'Columns' }} ({{ columns().length + 1 }})
+    </button>
+  </div>
+</div>
+
+@if (paletteOpen()) {
+  <div class="card column-palette">
+    <strong>Columns</strong>
+    <p class="small-note" style="margin-top: 4px;">
+      IP is always shown first. Your choice is remembered in this browser — Tribot stores its
+      equivalent against your user account, which USV has no place for yet.
+    </p>
+
+    <div class="chosen-columns">
+      <span class="pill pill-neutral">IP (pinned)</span>
+      @for (col of columns(); track col.key) {
+        <span class="column-chip">
+          {{ col.label }}
+          <button type="button" (click)="moveColumn(col.key, -1)" title="Move left">‹</button>
+          <button type="button" (click)="moveColumn(col.key, 1)" title="Move right">›</button>
+          <button type="button" (click)="removeColumn(col.key)" title="Remove">×</button>
+        </span>
+      }
+    </div>
+
+    @if (availableColumns().length) {
+      <div class="available-columns">
+        <span class="small-note">Add:</span>
+        @for (col of availableColumns(); track col.key) {
+          <button type="button" class="tog" (click)="addColumn(col.key)">+ {{ col.label }}</button>
+        }
+      </div>
+    }
+    <button type="button" class="btn" style="margin-top: 10px;" (click)="resetColumns()">
+      Reset to defaults
+    </button>
+  </div>
+}
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error-text">{{ error() }}</p>
+} @else {
+  <div class="toprow">
+    <span class="stat">
+      {{ assets().length }} of {{ totalCount() }} asset{{ totalCount() === 1 ? '' : 's' }}
+    </span>
+    @if (filterBy && filterValue) {
+      <span class="pill pill-amber">filtered</span>
+    }
+  </div>
+
+  <div class="card table-wrapper" style="padding: 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>IP</th>
+          <th>Name</th>
+          @for (col of columns(); track col.key) {
+            <th [class.numeric]="col.numeric">{{ col.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (asset of assets(); track asset.assetId) {
+          <tr class="clickable" [routerLink]="ctx.link('assets', asset.assetId)">
+            <td class="mono">{{ asset.ip || '—' }}</td>
+            <td>{{ displayName(asset) }}</td>
+            @for (col of columns(); track col.key) {
+              <td [class.numeric]="col.numeric">
+                @if (col.key === 'riskScore' && asset.riskLevel) {
+                  <span class="pill" [class]="riskLevelPillClass(asset.riskLevel)">
+                    {{ asset.riskScore ?? '' }} {{ asset.riskLevel }}
+                  </span>
+                } @else if (isOverridden(asset, col.key)) {
+                  <!-- Operator-corrected value, marked as Tribot marks it. -->
+                  <span class="overridden" title="Manually entered value">
+                    {{ cellValue(asset, col.key) }}
+                  </span>
+                } @else {
+                  {{ cellValue(asset, col.key) }}
+                }
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="columns().length + 2">
+              No assets returned by Tribot for the current filters.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (nextCursor()) {
+    <button type="button" class="btn" (click)="loadMore()" [disabled]="loadingMore()">
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  }
+
+  <p class="small-note">
+    Search and column filters run on Tribot across the whole session, not on the rows loaded here —
+    a filter applied to one page would quietly miss most of the inventory. Values shown in
+    <span class="overridden">this colour</span> were entered by an operator in Tribot rather than
+    discovered.
+  </p>
+}
